@@ -34,6 +34,17 @@ if __name__ == '__main__':
     params = parser.parse_args()
     dataset = params.dataset
     
+
+
+    if dataset in {"errex"}:
+        params.n_skill = 164
+        params.batch_size = 32
+        params.seqlen = 200
+        params.data_dir = '/content/ATKT/dataset/'+dataset
+        params.dataname = dataset
+        params.beta = 0.2
+        params.epsilon = 12
+
     if dataset in {"statics"}:
         params.n_skill = 1223
         params.batch_size = 24
@@ -106,12 +117,17 @@ if __name__ == '__main__':
             dat = PID_DATA(n_question=params.n_skill,
                            seqlen=params.seqlen, separate_char=',', maxstep=500)
     
-        train_data_path = params.data_dir + "/" + \
-            params.data_name + "_train"+str(params.dataset_set_index)+".csv"
-        valid_data_path = params.data_dir + "/" + \
-            params.data_name + "_valid"+str(params.dataset_set_index)+".csv"
-        test_data_path = params.data_dir + "/" + \
-            params.data_name + "_test"+str(params.dataset_set_index)+".csv"
+        if dataset in {"errex"}:
+            train_data_path = params.data_dir + "/" + params.data_name + "_train.csv" 
+            valid_data_path = train_data_path
+            test_data_path = train_data_path
+        else:
+            train_data_path = params.data_dir + "/" + \
+                params.data_name + "_train"+str(params.dataset_set_index)+".csv"
+            valid_data_path = params.data_dir + "/" + \
+                params.data_name + "_valid"+str(params.dataset_set_index)+".csv"
+            test_data_path = params.data_dir + "/" + \
+                params.data_name + "_test"+str(params.dataset_set_index)+".csv"
 
         train_skill_data, train_answer_data = dat.load_data(train_data_path)
         val_skill_data, val_answer_data = dat.load_data(valid_data_path)
