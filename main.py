@@ -37,11 +37,11 @@ if __name__ == '__main__':
 
 
     if dataset in {"errex"}:
-        params.n_skill = 164
-        params.batch_size = 32
-        params.seqlen = 200
+        params.n_skill = 237
+        params.batch_size = 24
+        params.seqlen = 250
         params.data_dir = '/content/ATKT/dataset/'+dataset
-        params.dataname = dataset
+        params.data_name = dataset
         params.beta = 0.2
         params.epsilon = 12
 
@@ -49,7 +49,7 @@ if __name__ == '__main__':
         params.n_skill = 1223
         params.batch_size = 24
         params.seqlen = 200
-        params.data_dir = 'dataset/'+dataset
+        params.data_dir = '/content/ATKT/dataset/'+dataset
         params.data_name = dataset
         params.beta = 0.2
         params.epsilon=12
