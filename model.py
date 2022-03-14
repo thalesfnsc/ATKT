@@ -53,14 +53,14 @@ class KT_backbone(nn.Module):
         return final_output
 
 
-    def forward(self, skill, answer, perturbation=None):
+    def forward(self, skill, answer, perturbation=True):
         
         skill_embedding=self.skill_emb(skill)
         answer_embedding=self.answer_emb(answer)
-        
+   
         skill_answer=torch.cat((skill_embedding,answer_embedding), 2)
         answer_skill=torch.cat((answer_embedding,skill_embedding), 2)
-        
+
         answer=answer.unsqueeze(2).expand_as(skill_answer)
         
         skill_answer_embedding=torch.where(answer==1, skill_answer, answer_skill)
