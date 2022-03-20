@@ -120,7 +120,7 @@ if __name__ == '__main__':
         if dataset in {"errex"}:
             train_data_path = params.data_dir + "/" + params.data_name + "_train.csv" 
             valid_data_path = train_data_path
-            test_data_path = train_data_pathemb
+            test_data_path = train_data_path
         else:
             train_data_path = params.data_dir + "/" + \
                 params.data_name + "_train"+str(params.dataset_set_index)+".csv"
