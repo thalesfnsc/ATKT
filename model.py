@@ -25,14 +25,29 @@ class KT_backbone(nn.Module):
         self.attention_dim = 80
         self.mlp = nn.Linear(self.hidden_dim, self.attention_dim)
         self.similarity = nn.Linear(self.attention_dim, 1, bias=False)
+    
+
+    def _get_preds(self,res,skill):
+        one_hot = torch.eye(self.output_dim, device=res.device)
+        one_hot = torch.cat((one_hot, torch.zeros(1, self.output_dim).to(device)), dim=0)
         
+
+        one_hot_skill = F.embedding(skill, one_hot)
+    
+        pred = (res * one_hot_skill).sum(dim=-1)
+
+        return pred
+        
+
+
     def _get_next_pred(self, res, skill):
         
         one_hot = torch.eye(self.output_dim, device=res.device)
         one_hot = torch.cat((one_hot, torch.zeros(1, self.output_dim).to(device)), dim=0)
         next_skill = skill[:, 1:]
+
         one_hot_skill = F.embedding(next_skill, one_hot)
-        
+    
         pred = (res * one_hot_skill).sum(dim=-1)
         return pred
     
@@ -52,8 +67,34 @@ class KT_backbone(nn.Module):
         
         return final_output
 
+    def predict(self,skill,answer,perturbation=None):
+          
+        skill_embedding=self.skill_emb(skill)
+        answer_embedding=self.answer_emb(answer)
+   
+        skill_answer=torch.cat((skill_embedding,answer_embedding), 2)
+        answer_skill=torch.cat((answer_embedding,skill_embedding), 2)
 
-    def forward(self, skill, answer, perturbation=True):
+        answer=answer.unsqueeze(2).expand_as(skill_answer)
+        
+        skill_answer_embedding=torch.where(answer==1, skill_answer, answer_skill)
+
+
+        
+        if  perturbation is not None:
+            skill_answer_embedding+=perturbation
+        
+        out,_ = self.rnn(skill_answer_embedding)
+        out=self.attention_module(out)
+
+        res = self.sig(self.fc(out))
+
+        pred_res = self._get_preds(res, skill)
+
+        return pred_res
+
+
+    def forward(self, skill, answer, perturbation=None):
         
         skill_embedding=self.skill_emb(skill)
         answer_embedding=self.answer_emb(answer)
@@ -65,6 +106,7 @@ class KT_backbone(nn.Module):
         
         skill_answer_embedding=torch.where(answer==1, skill_answer, answer_skill)
 
+
         skill_answer_embedding1=skill_answer_embedding
         
         if  perturbation is not None:
@@ -72,9 +114,12 @@ class KT_backbone(nn.Module):
         
         out,_ = self.rnn(skill_answer_embedding)
         out=self.attention_module(out)
-        res = self.sig(self.fc(out))
 
+        res = self.sig(self.fc(out))
+        
+        
         res = res[:, :-1, :]
+
         pred_res = self._get_next_pred(res, skill)
         
         return pred_res, skill_answer_embedding1

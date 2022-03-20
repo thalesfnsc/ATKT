@@ -37,13 +37,13 @@ if __name__ == '__main__':
 
 
     if dataset in {"errex"}:
-        params.n_skill = 237
+        params.n_skill = 238
         params.batch_size = 24
         params.seqlen = 250
         params.data_dir = '/content/ATKT/dataset/'+dataset
         params.data_name = dataset
-        params.beta = 0.2
-        params.epsilon = 12
+        params.beta = 0
+        params.epsilon = 1
 
     if dataset in {"statics"}:
         params.n_skill = 1223
@@ -120,7 +120,7 @@ if __name__ == '__main__':
         if dataset in {"errex"}:
             train_data_path = params.data_dir + "/" + params.data_name + "_train.csv" 
             valid_data_path = train_data_path
-            test_data_path = train_data_path
+            test_data_path = train_data_pathemb
         else:
             train_data_path = params.data_dir + "/" + \
                 params.data_name + "_train"+str(params.dataset_set_index)+".csv"
