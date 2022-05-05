@@ -1,3 +1,4 @@
+from cmath import pi
 import pickle
 import pandas as pd
 import numpy as np
@@ -12,6 +13,8 @@ from sklearn.metrics import roc_auc_score
 from utils import KTLoss, _l2_normalize_adv
 from pytorchtools import EarlyStopping
 from scipy.stats import pearsonr
+
+device = torch.device("cpu")
 
 with open('/home/thales/ATKT/dataset/errex/errex_dropped.csv','rb') as file:
    df = pd.read_csv(file)
@@ -35,28 +38,82 @@ with open('/home/thales/ATKT/problems_per_skills.pickle','rb') as file:
 skill_emb_dim = 256
 answer_emb_dim = 96
 hidden_emb_dim = 80
-n_skill_dim = 238
+n_skill_dim = 4
+
 
 net = KT_backbone(skill_emb_dim,answer_emb_dim,hidden_emb_dim,n_skill_dim)
-net.load_state_dict(torch.load('/home/thales/ATKT/kt_model_best (1).pt'))
+net.load_state_dict(torch.load('/home/thales/ATKT/Checkpoints/atkt_pid.pt',map_location=torch.device('cpu')))
+
+
+
 net.eval()
 
+dat = PID_DATA(n_question=4,seqlen=250,separate_char=',',maxstep=500)
+
+train_skill_data,train_answer_data = dat.load_data('/home/thales/ATKT/dataset/errex_pid/errex_pid_train1.csv')
+
+
+print(train_skill_data.shape)
+
+#print(train_skill_data[1])
+#print(train_answer_data[1])
+
 '''
-problem_test = student_interations['Stu_002769db730fa4d61ed6f962b38eab6f'][0]
-answer_test = student_interations['Stu_002769db730fa4d61ed6f962b38eab6f'][1]
-print(answer_test[1:])
-
-
 with torch.no_grad():
-   problem_test = torch.LongTensor(problem_test)
-   answer_test = torch.LongTensor(answer_test)   
-   problem_test = torch.unsqueeze(problem_test,dim=0)
-   answer_test = torch.unsqueeze(answer_test,dim=0)
-   pred_res = net.predict(problem_test,answer_test)
 
-#print(pred_res)
+   skill = torch.LongTensor(train_skill_data)
+   answer = torch.LongTensor(train_answer_data)
+
+   skill = torch.where(skill==-1, torch.tensor([3]), skill)
+   answer = torch.where(answer==-1, torch.tensor([2]), answer)
+   skill, answer = skill.to(device),answer.to(device)
+
+   print(skill.shape)
+   print(answer.shape)
+   print(skill[0].shape)
+   print(answer[0].shape)
+   pred_res = net.predict(skill,answer)
+
+   with open('preds.pickle','wb') as file:
+      pickle.dump({'preds':pred_res},file)
+
 '''
 
+with open('/home/thales/ATKT/preds.pickle','rb') as file:
+   preds = pickle.load(file)['preds']
+
+preds = preds.cpu().detach().numpy()
+
+
+students = df['student_id'].unique()
+skills = df['skill_name']
+
+student_mean_of_correctness = {}
+for i in range(len(students)):
+
+   student_seq =  train_skill_data[i]+1
+
+   index_ordDecimals = np.where(student_seq==1)
+   index_placeNumber = np.where(student_seq==2)
+   index_completeSeque = np.where(student_seq ==3)
+   index_decimaAddition = np.where(student_seq==4)
+
+   mean_of_correctness = {}
+   mean_of_correctness['OrderingDecimals'] = np.mean(preds[i][index_ordDecimals])
+   mean_of_correctness['PlacementOnNumberLine'] = np.mean(preds[i][index_placeNumber])
+   mean_of_correctness['CompleteTheSequence'] = np.mean(preds[i][index_completeSeque])
+   mean_of_correctness['DecimalAddition'] = np.mean(preds[i][index_decimaAddition])
+
+   student_mean_of_correctness[students[i]] = mean_of_correctness
+
+
+
+#print(student_mean_of_correctness)
+
+
+
+
+'''
 students = df['student_id'].unique()
 student_mean_of_correctness = {}
 
@@ -87,6 +144,9 @@ for student in students:
 
 
 
+'''
+
+
 
 
 
@@ -103,7 +163,7 @@ skills_score = {
 }
 
 
-with open('/home/thales/deep-knowledge-tracing-plus/data/errex/ErrEx posttest data.xlsx','rb') as file:
+with open('/home/thales/ATKT/ErrEx posttest data.xlsx','rb') as file:
     df_2 = pd.read_excel(file)
 
 

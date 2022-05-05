@@ -36,8 +36,8 @@ if __name__ == '__main__':
     
 
 
-    if dataset in {"errex"}:
-        params.n_skill = 238
+    if dataset in {"errex_pid"}:
+        params.n_skill = 4
         params.batch_size = 24
         params.seqlen = 250
         params.data_dir = '/content/ATKT/dataset/'+dataset
@@ -117,8 +117,8 @@ if __name__ == '__main__':
             dat = PID_DATA(n_question=params.n_skill,
                            seqlen=params.seqlen, separate_char=',', maxstep=500)
     
-        if dataset in {"errex"}:
-            train_data_path = params.data_dir + "/" + params.data_name + "_train.csv" 
+        if dataset in {"errex_pid"}:
+            train_data_path = params.data_dir + "/" + params.data_name + "_train1.csv" 
             valid_data_path = train_data_path
             test_data_path = train_data_path
         else:
