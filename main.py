@@ -231,6 +231,7 @@ if __name__ == '__main__':
         # test
         load_model_path=os.path.join(save_model_file, 'kt_model_best.pt')
         net.load_state_dict(torch.load(load_model_path))
+
         net.eval()
         y_true_test_list = []
         y_pred_test_list = []

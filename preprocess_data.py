@@ -13,20 +13,17 @@ from sklearn.metrics import roc_auc_score
 from utils import KTLoss, _l2_normalize_adv
 from pytorchtools import EarlyStopping
 from scipy.stats import pearsonr
+import time
 
 device = torch.device("cpu")
 
-with open('/home/thales/ATKT/dataset/errex/errex_dropped.csv','rb') as file:
+with open('/content/ATKT/dataset/errex/errex_dropped.csv','rb') as file:
    df = pd.read_csv(file)
 
-
-
-
-
-with open('/home/thales/ATKT/student_interations.pickle','rb') as file:
+with open('/content/ATKT/student_interations.pickle','rb') as file:
    student_interations = pickle.load(file)
 
-with open('/home/thales/ATKT/problems_per_skills.pickle','rb') as file:
+with open('/content/ATKT/problems_per_skills.pickle','rb') as file:
    problems_per_skills = pickle.load(file)
 
 
@@ -42,23 +39,22 @@ n_skill_dim = 4
 
 
 net = KT_backbone(skill_emb_dim,answer_emb_dim,hidden_emb_dim,n_skill_dim)
-net.load_state_dict(torch.load('/home/thales/ATKT/Checkpoints/atkt_pid.pt',map_location=torch.device('cpu')))
+net.load_state_dict(torch.load('/content/ATKT/Checkpoints/atkt_pid.pt',map_location=torch.device('cpu')))
 
 
 
 net.eval()
 
-dat = PID_DATA(n_question=4,seqlen=250,separate_char=',',maxstep=500)
+dat = PID_DATA(n_question=4,seqlen=250,separate_char=',',maxstep=350)
 
-train_skill_data,train_answer_data = dat.load_data('/home/thales/ATKT/dataset/errex_pid/errex_pid_train1.csv')
+train_skill_data,train_answer_data = dat.load_data('/content/ATKT/dataset/errex_pid/errex_pid_train1.csv')
 
 
-print(train_skill_data.shape)
 
 #print(train_skill_data[1])
 #print(train_answer_data[1])
 
-'''
+
 with torch.no_grad():
 
    skill = torch.LongTensor(train_skill_data)
@@ -72,10 +68,17 @@ with torch.no_grad():
    print(answer.shape)
    print(skill[0].shape)
    print(answer[0].shape)
+   start = time.time()
    pred_res = net.predict(skill,answer)
+   end = time.time()
 
-   with open('preds.pickle','wb') as file:
-      pickle.dump({'preds':pred_res},file)
+print(pred_res[0])
+
+print('time elapsed:', end-start)
+
+#   with open('preds.pickle','wb') as file:
+#      pickle.dump({'preds':pred_res},file)
+
 
 '''
 
@@ -111,7 +114,7 @@ for i in range(len(students)):
 #print(student_mean_of_correctness)
 
 
-
+'''
 
 '''
 students = df['student_id'].unique()
@@ -148,7 +151,7 @@ for student in students:
 
 
 
-
+'''
 
 ord_decimals = [i['OrderingDecimals'] for i in  list(student_mean_of_correctness.values())]
 place_number = [i['PlacementOnNumberLine'] for i in  list(student_mean_of_correctness.values())]
@@ -196,11 +199,4 @@ pearson_correlations['DecimalAddition'] = pearsonr(decimal_addition_estimate,dec
 print(pearson_correlations)
 
 
-
-
-   #TODO
-
-   #tentar gerar para a última posição
-   #carregar o problem per skill e tentar fazer de forma simular ao outro código 
-   #calcular a média para cada aluno
-   #computar a correlação com o post-test
+'''
